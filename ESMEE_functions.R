@@ -20,7 +20,7 @@ reduce.digits.fast = function (data, digit, sep){
     data = as.matrix(data)
     data[] <- vapply(data, y, character(1))
     result[] = apply(data, 1, z)
-    print(class(result))
+    #print(class(result))
     return(result)
   }
   if (digit == 4){
