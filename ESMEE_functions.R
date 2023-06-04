@@ -16,7 +16,7 @@ reduce.digits.fast = function (data, digit, sep){
     }
     data <- as.matrix(data)
     result = matrix(NA, nrow = dim(data)[1])
-    data = cSplit(data, 1,  sep = sep)
+    data = splitstackshape::cSplit(data, 1,  sep = sep)
     data = as.matrix(data)
     data[] <- vapply(data, y, character(1))
     result[] = apply(data, 1, z)
@@ -38,7 +38,7 @@ reduce.digits.fast = function (data, digit, sep){
     # ici traitement des donnees
     data <- as.matrix(data) # assurer que format soit matrice
     result = matrix(NA, nrow = dim(data)[1]) # créer une matrice qui contiendra les resultats
-    data = cSplit(data, 1, sep =sep) # couper les données
+    data = splitstackshape::cSplit(data, 1, sep =sep) # couper les données
     data = as.matrix(data) # remettre en matrice
     data[] <- vapply(data, y, character(1)) # appliquer la fonction y (soustraire) à toutes les lignes (vapply)
     result[] <- apply(data, 1, z) # Appliquer la fonction y sur toutes les
@@ -56,7 +56,7 @@ reduce.digits.fast = function (data, digit, sep){
     }
     data <- as.matrix(data)
     result = matrix(NA, nrow = dim(data)[1])
-    data = cSplit(data, 1, sep = sep)
+    data = splitstackshape::cSplit(data, 1, sep = sep)
     data = as.matrix(data)
     data[] <- vapply(data, y, character(1))
     result[] = apply(data, 1, z)
@@ -89,7 +89,34 @@ network_creation = function(data, dynamic, sep){
         res = rbind(res, tmp)
       }
     }
+    res = as.data.frame(na.omit(res))
+    colnames(res) = c("Year", "Source", "Target")
+    if(missing(dynamic) == FALSE){
+      res[,c(2,3)] = alpha.order(res[,c(2,3)])
+      res$linkid = paste(res[,2], res[,3], sep = ";")
+      res = res %>% group_by(linkid) %>% summarize("weight" = n(), "first_year" = min(Year), "last_year" = max(Year))
+      res = splitstackshape::cSplit(res, 1, sep = ";")
+      colnames(res) = c("Weight", "First_year", "Last_year", "Source", "Target")
+    }
     return(res)
   }
 }
 
+
+######
+###### Put elements into alphabetical order 
+######
+
+alpha.order<-function(data){
+  data<-as.matrix(data)
+  for (i in 1:dim(data)[1]){
+    data[i,1] = replace_non_ascii(data[i,1], remove.nonconverted = TRUE)
+    data[i,2] = replace_non_ascii(data[i,2], remove.nonconverted = TRUE)
+    if (data[i,1] > data[i,2]){
+      s<-data[i,1]
+      data[i,1]<-data[i,2]
+      data[i,2]<-s
+    }  
+  }
+  return(data)
+}
